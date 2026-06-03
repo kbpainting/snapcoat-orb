@@ -15,20 +15,32 @@
     font-size:13px;letter-spacing:3px;text-transform:uppercase;opacity:.7;pointer-events:none}
   .brand{font-weight:800;font-size:20px;letter-spacing:-.5px;
     background:linear-gradient(90deg,#3B82F6,#8B5CF6,#C026D3,#EC4899);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  #mic{position:fixed;bottom:34px;left:50%;transform:translateX(-50%);
-    padding:13px 26px;border-radius:999px;border:1px solid rgba(255,255,255,.14);
-    background:rgba(255,255,255,.05);color:#e2e8f0;font-size:15px;font-weight:600;cursor:pointer;
-    backdrop-filter:blur(8px);transition:all .2s;display:flex;align-items:center;gap:9px}
-  #mic:hover{background:rgba(255,255,255,.10);border-color:rgba(139,92,246,.5)}
-  #mic.live{border-color:#ec4899;background:rgba(236,72,153,.12);color:#fff;box-shadow:0 0 28px rgba(236,72,153,.35)}
-  #hint{position:fixed;bottom:88px;left:0;right:0;text-align:center;color:#64748b;font-size:12px;pointer-events:none}
+  #status{position:fixed;top:64%;left:0;right:0;text-align:center;color:#fff;font-size:19px;font-weight:700;pointer-events:none}
+  #status .sub{margin-top:5px;font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+  #controls{position:fixed;top:74%;left:50%;transform:translateX(-50%);display:flex;gap:18px}
+  .ctl{width:58px;height:58px;border-radius:999px;border:1px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.05);color:#fff;font-size:22px;cursor:pointer;backdrop-filter:blur(8px);transition:all .2s}
+  .ctl:hover{background:rgba(255,255,255,.10)}
+  .ctl.live{border-color:#ec4899;background:rgba(236,72,153,.14);box-shadow:0 0 26px rgba(236,72,153,.35)}
+  .ctl.end{background:#f43f5e;border-color:#f43f5e}
+  #switch{position:fixed;bottom:42px;left:50%;transform:translateX(-50%);
+    padding:11px 22px;border-radius:999px;border:1px solid rgba(255,255,255,.15);
+    background:rgba(255,255,255,.05);color:rgba(255,255,255,.82);font-size:14px;font-weight:600;cursor:pointer;
+    backdrop-filter:blur(8px);transition:all .2s;display:flex;align-items:center;gap:8px}
+  #switch:hover{background:rgba(255,255,255,.10)}
+  #hint{position:fixed;bottom:12px;left:0;right:0;text-align:center;color:#475569;font-size:11px;pointer-events:none}
 </style>
 </head>
 <body>
 <div id="wrap"><canvas id="c"></canvas></div>
-<div class="label"><div class="brand">SnapCoat</div>Voice AI</div>
-<button id="mic">🎤 Talk to it</button>
-<div id="hint">auto-pulsing demo · tap “Talk to it” to drive it with your voice</div>
+<div class="label"><div class="brand">SnapCoat</div>OwnerIQ Voice</div>
+<div id="status">Listening…<div class="sub">OwnerIQ · alloy</div></div>
+<div id="controls">
+  <button class="ctl" id="mic" title="Mute">🎤</button>
+  <button class="ctl end" title="End">⏹</button>
+</div>
+<button id="switch">💬 Switch to text</button>
+<div id="hint">live mobile preview · tap 🎤 to drive the orb with your voice</div>
 <script>
 const cv=document.getElementById('c'), ctx=cv.getContext('2d');
 let W,H,CX,CY,R,DPR=Math.min(window.devicePixelRatio||1,2);
@@ -36,7 +48,7 @@ function resize(){
   W=window.innerWidth; H=window.innerHeight;
   cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+'px'; cv.style.height=H+'px';
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  CX=W/2; CY=H/2; R=Math.min(W,H)*0.30;
+  CX=W/2; CY=H*0.40; R=Math.min(W,H)*0.27;
 }
 window.addEventListener('resize',resize); resize();
 
@@ -63,9 +75,9 @@ micBtn.onclick=async()=>{
     const src=ac.createMediaStreamSource(stream);
     analyser=ac.createAnalyser(); analyser.fftSize=512; analyser.smoothingTimeConstant=.8;
     freq=new Uint8Array(analyser.frequencyBinCount); src.connect(analyser);
-    micBtn.classList.add('live'); micBtn.textContent='🎙️ Listening — talk!';
+    micBtn.classList.add('live'); micBtn.textContent='🎙️';
     document.getElementById('hint').textContent='reacting to your mic in real time';
-  }catch(e){ micBtn.textContent='mic blocked — using demo'; }
+  }catch(e){ micBtn.textContent='🚫'; }
 };
 function readLevel(t){
   if(analyser){
