@@ -101,16 +101,20 @@ function frame(){
     const pr=project(x1,y2,z2); P[v]={x:pr[0],y:pr[1],persp:pr[2],lat,z:z2};
   }
   const idx=(i,j)=>i*LON+(j%LON);
-  ctx.lineWidth=1.05;
-  for(let i=0;i<=LAT;i++)for(let j=0;j<LON;j++){
-    const a=P[idx(i,j)],c=brandColor(i/LAT*.85+.05),depth=(a.persp-.55)/.5;
-    const alpha=Math.max(.05,Math.min(.9,depth))*(.5+level*.5);
-    ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${alpha})`;
-    ctx.shadowColor=`rgba(${c[0]},${c[1]},${c[2]},.5)`; ctx.shadowBlur=6+level*14;
-    if(i<LAT){const b=P[idx(i+1,j)];ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
-    const e=P[idx(i,j+1)];ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(e.x,e.y);ctx.stroke();
+  // Batch each latitude ring into ONE path (~35 strokes/frame instead of ~4500), no per-line
+  // shadowBlur. Glow = a wide faint pass + a thin bright pass under additive 'lighter' blend.
+  ctx.lineCap='round';
+  for(let i=0;i<=LAT;i++){
+    const c=brandColor(i/LAT*.85+.05);
+    const path=new Path2D();
+    for(let j=0;j<LON;j++){
+      const a=P[idx(i,j)], e=P[idx(i,j+1)];
+      path.moveTo(a.x,a.y); path.lineTo(e.x,e.y);                         // around the ring
+      if(i<LAT){ const b=P[idx(i+1,j)]; path.moveTo(a.x,a.y); path.lineTo(b.x,b.y); } // down to next ring
+    }
+    ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${.08+level*.10})`; ctx.lineWidth=3.0; ctx.stroke(path); // glow
+    ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${.42+level*.40})`; ctx.lineWidth=1.0; ctx.stroke(path); // core
   }
-  ctx.shadowBlur=0;
   for(let v=0;v<P.length;v++){const a=P[v];if(a.persp<.92)continue;const c=brandColor(a.lat/Math.PI*.85+.05);
     ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${.5*level+.15})`;ctx.beginPath();ctx.arc(a.x,a.y,1.1+level*1.6,0,6.28);ctx.fill();}
   for(const p of parts){
